@@ -160,6 +160,12 @@
               border-color: #667eea;
           }
 
+          .input-field:disabled {
+              background-color: #f8f9fa;
+              color: #6c757d;
+              cursor: not-allowed;
+          }
+
           .send-button {
               margin-left: 10px;
               padding: 15px 25px;
@@ -319,9 +325,6 @@
       </div>
 
       <script>
-          const API_KEY = 'sk-111a4f87af724cd4b3a9c3e6bc8f85ab';
-          const BASE_URL = 'https://api.deepseek.com';
-
           let isLoading = false;
           let currentUser = null;
           let conversationHistory = [];
@@ -337,6 +340,7 @@
                   return;
               }
 
+              // 初始显示用户名，详细状态稍后加载
               document.getElementById('userInfo').textContent = `欢迎，${username}`;
 
               // 验证token并加载聊天历史
@@ -352,8 +356,9 @@
                   });
 
                   if (response.ok) {
-                      // Token有效，加载聊天历史
+                      // Token有效，加载聊天历史和用户状态
                       await loadChatHistory();
+                      await loadUserStatus();
                   } else {
                       // Token无效，跳转到登录页面
                       localStorage.removeItem('token');
@@ -411,6 +416,43 @@
                   });
               } catch (error) {
                   console.error('Error saving chat history:', error);
+              }
+          }
+
+          async function loadUserStatus() {
+              try {
+                  const response = await fetch('/api/user-status', {
+                      headers: {
+                          'Authorization': `Bearer ${authToken}`
+                      }
+                  });
+
+                  if (response.ok) {
+                      const status = await response.json();
+                      const username = localStorage.getItem('username');
+
+                      // 更新用户信息显示
+                      const planName = {
+                          'free': '免费版',
+                          'basic': '基础版',
+                          'premium': '高级版'
+                      }[status.planType] || '未知套餐';
+
+                      document.getElementById('userInfo').textContent =
+                          `${username} | ${planName} | 剩余问题：${status.remainingQuestions}/${status.questionsLimit}`;
+
+                      // 如果问题用完了，禁用输入
+                      if (status.remainingQuestions <= 0) {
+                          const messageInput = document.getElementById('messageInput');
+                          const sendButton = document.getElementById('sendButton');
+                          messageInput.disabled = true;
+                          messageInput.placeholder = '问题次数已用完，请升级套餐继续使用';
+                          sendButton.disabled = true;
+                          sendButton.textContent = '需要升级';
+                      }
+                  }
+              } catch (error) {
+                  console.error('Error loading user status:', error);
               }
           }
 
@@ -483,76 +525,83 @@
               }, 1000);
 
               try {
-                  // 构建消息历史（保持最近20条消息）
-                  const messages = [
-                      {
-                          role: 'system',
-                          content: '你是一个有用的AI助手。请用中文回答问题。'
-                      },
-                      ...conversationHistory.slice(-20)
-                  ];
-
-                  const response = await fetch(`${BASE_URL}/chat/completions`, {
+                  // 调用后端聊天接口
+                  const response = await fetch('/api/chat', {
                       method: 'POST',
                       headers: {
                           'Content-Type': 'application/json',
-                          'Authorization': `Bearer ${API_KEY}`
+                          'Authorization': `Bearer ${authToken}`
                       },
                       body: JSON.stringify({
-                          model: 'deepseek-chat',
-                          messages: messages,
-                          stream: true
+                          message: message
                       })
                   });
 
                   if (!response.ok) {
-                      throw new Error(`API请求失败: ${response.status}`);
+                      const errorData = await response.json();
+                      if (response.status === 403 && errorData.needUpgrade) {
+                          // 问题次数用完，需要升级
+                          clearInterval(timerInterval);
+                          thinkingDiv.remove();
+                          messageContent.innerHTML = `
+                              <div style="text-align: center; padding: 20px;">
+                                  <p style="color: #e74c3c; font-weight: bold; margin-bottom: 15px;">
+                                      ${errorData.message}
+                                  </p>
+                                  <p style="color: #666; margin-bottom: 15px;">
+                                      当前套餐：${errorData.currentPlan === 'free' ? '免费版' : errorData.currentPlan === 'basic' ? '基础版' : '高级版'}<br>
+                                      已使用：${errorData.questionsUsed}/${errorData.questionsLimit} 个问题
+                                  </p>
+                                  <button onclick="goToUpgrade()" style="
+                                      background: linear-gradient(45deg, #ffd700, #ffed4e);
+                                      border: none;
+                                      border-radius: 15px;
+                                      color: #333;
+                                      cursor: pointer;
+                                      font-size: 14px;
+                                      font-weight: bold;
+                                      padding: 10px 20px;
+                                      transition: all 0.3s;
+                                  ">
+                                      💎 立即升级
+                                  </button>
+                              </div>
+                          `;
+                          aiMessageDiv.classList.remove('streaming');
+
+                          // 禁用输入
+                          const messageInput = document.getElementById('messageInput');
+                          const sendButton = document.getElementById('sendButton');
+                          messageInput.disabled = true;
+                          messageInput.placeholder = '问题次数已用完，请升级套餐继续使用';
+                          sendButton.disabled = true;
+                          sendButton.textContent = '需要升级';
+
+                          return;
+                      }
+                      throw new Error(`请求失败: ${response.status}`);
                   }
+
+                  const data = await response.json();
+                  const aiMessage = data.reply;
 
                   // 清除计时器和思考状态
                   clearInterval(timerInterval);
                   thinkingDiv.remove();
 
-                  // 开始流式显示
-                  const reader = response.body.getReader();
-                  const decoder = new TextDecoder();
-                  let aiMessage = '';
-
                   // 移除打字光标，准备显示内容
                   messageContent.innerHTML = '';
 
-                  while (true) {
-                      const { done, value } = await reader.read();
-                      if (done) break;
+                  // 逐字显示效果
+                  await typeText(messageContent, aiMessage);
+                  chatMessages.scrollTop = chatMessages.scrollHeight;
 
-                      const chunk = decoder.decode(value);
-                      const lines = chunk.split('\n');
-
-                      for (const line of lines) {
-                          if (line.startsWith('data: ')) {
-                              const data = line.slice(6).trim();
-                              if (data === '[DONE]') break;
-
-                              try {
-                                  const parsed = JSON.parse(data);
-                                  if (parsed.choices && parsed.choices[0] && parsed.choices[0].delta && parsed.choices[0].delta.content) {
-                                      const content = parsed.choices[0].delta.content;
-                                      aiMessage += content;
-
-                                      // 逐字显示效果
-                                      await typeText(messageContent, content);
-                                      chatMessages.scrollTop = chatMessages.scrollHeight;
-                                  }
-                              } catch (e) {
-                                  // 忽略解析错误
-                              }
-                          }
-                      }
-                  }
-
-                  // 完成流式输出
+                  // 完成输出
                   aiMessageDiv.classList.remove('streaming');
                   conversationHistory.push({role: 'assistant', content: aiMessage});
+
+                  // 更新用户状态显示
+                  await loadUserStatus();
 
               } catch (error) {
                   console.error('Error:', error);
@@ -566,8 +615,10 @@
                   aiMessageDiv.classList.remove('streaming');
               } finally {
                   isLoading = false;
-                  sendButton.disabled = false;
-                  sendButton.textContent = '发送';
+                  if (!sendButton.disabled) {  // 只有在没有被其他逻辑禁用的情况下才重新启用
+                      sendButton.disabled = false;
+                      sendButton.textContent = '发送';
+                  }
 
                   // 保存聊天历史
                   await saveChatHistory();
