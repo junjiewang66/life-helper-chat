@@ -1,531 +1,522 @@
-<!DOCTYPE html>
-<html lang="zh">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>升级账户 - 生活问题解决助手</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+ <!DOCTYPE html>
+  <html lang="zh">
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>升级账户 - 生活问题解决助手</title>
+      <style>
+          * {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+          }
 
-        body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
+          body {
+              font-family: 'Arial', sans-serif;
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              min-height: 100vh;
+              padding: 20px;
+          }
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
+          .container {
+              max-width: 800px;
+              margin: 0 auto;
+              background: white;
+              border-radius: 20px;
+              box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+              overflow: hidden;
+          }
 
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
+          .header {
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              color: white;
+              padding: 30px;
+              text-align: center;
+          }
 
-        .header h1 {
-            font-size: 28px;
-            margin-bottom: 10px;
-        }
+          .header h1 {
+              font-size: 28px;
+              margin-bottom: 10px;
+          }
 
-        .header p {
-            opacity: 0.9;
-            font-size: 16px;
-        }
+          .header p {
+              opacity: 0.9;
+              font-size: 16px;
+          }
 
-        .content {
-            padding: 40px;
-        }
+          .content {
+              padding: 40px;
+          }
 
-        .plans {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            margin-bottom: 40px;
-        }
+          .plans {
+              display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+              gap: 30px;
+              margin-bottom: 40px;
+          }
 
-        .plan {
-            border: 2px solid #f0f0f0;
-            border-radius: 15px;
-            padding: 30px;
-            text-align: center;
-            transition: all 0.3s;
-            position: relative;
-        }
+          .plan {
+              border: 2px solid #f0f0f0;
+              border-radius: 15px;
+              padding: 30px;
+              text-align: center;
+              transition: all 0.3s;
+              position: relative;
+          }
 
-        .plan:hover {
-            border-color: #667eea;
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
+          .plan:hover {
+              border-color: #667eea;
+              transform: translateY(-5px);
+              box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+          }
 
-        .plan.recommended {
-            border-color: #667eea;
-            background: linear-gradient(135deg, #f8f9ff 0%, #e8ecff 100%);
-        }
+          .plan.recommended {
+              border-color: #667eea;
+              background: linear-gradient(135deg, #f8f9ff 0%, #e8ecff 100%);
+          }
 
-        .plan.recommended::before {
-            content: "推荐";
-            position: absolute;
-            top: -12px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #667eea;
-            color: white;
-            padding: 5px 20px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-        }
+          .plan.recommended::before {
+              content: "推荐";
+              position: absolute;
+              top: -12px;
+              left: 50%;
+              transform: translateX(-50%);
+              background: #667eea;
+              color: white;
+              padding: 5px 20px;
+              border-radius: 20px;
+              font-size: 12px;
+              font-weight: bold;
+          }
 
-        .plan-name {
-            font-size: 24px;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 10px;
-        }
+          .plan-name {
+              font-size: 24px;
+              font-weight: bold;
+              color: #333;
+              margin-bottom: 10px;
+          }
 
-        .plan-price {
-            font-size: 36px;
-            font-weight: bold;
-            color: #667eea;
-            margin-bottom: 20px;
-        }
+          .plan-price {
+              font-size: 36px;
+              font-weight: bold;
+              color: #667eea;
+              margin-bottom: 20px;
+          }
 
-        .plan-price .currency {
-            font-size: 20px;
-        }
+          .plan-price .currency {
+              font-size: 20px;
+          }
 
-        .plan-period {
-            color: #666;
-            font-size: 14px;
-            margin-bottom: 20px;
-        }
+          .plan-period {
+              color: #666;
+              font-size: 14px;
+              margin-bottom: 20px;
+          }
 
-        .plan-features {
-            list-style: none;
-            margin-bottom: 30px;
-        }
+          .plan-features {
+              list-style: none;
+              margin-bottom: 30px;
+          }
 
-        .plan-features li {
-            padding: 8px 0;
-            color: #555;
-            position: relative;
-            padding-left: 25px;
-        }
+          .plan-features li {
+              padding: 8px 0;
+              color: #555;
+              position: relative;
+              padding-left: 25px;
+          }
 
-        .plan-features li::before {
-            content: "✓";
-            position: absolute;
-            left: 0;
-            color: #27ae60;
-            font-weight: bold;
-        }
+          .plan-features li::before {
+              content: "✓";
+              position: absolute;
+              left: 0;
+              color: #27ae60;
+              font-weight: bold;
+          }
 
-        .current-plan {
-            background: #f8f9fa;
-            color: #666;
-            padding: 12px 24px;
-            border-radius: 25px;
-            border: none;
-            cursor: not-allowed;
-            font-size: 16px;
-            font-weight: bold;
-        }
+          .current-plan {
+              background: #f8f9fa;
+              color: #666;
+              padding: 12px 24px;
+              border-radius: 25px;
+              border: none;
+              cursor: not-allowed;
+              font-size: 16px;
+              font-weight: bold;
+          }
 
-        .payment-section {
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 30px;
-            margin-top: 30px;
-        }
+          .payment-section {
+              background: #f8f9fa;
+              border-radius: 15px;
+              padding: 30px;
+              margin-top: 30px;
+          }
 
-        .payment-title {
-            font-size: 24px;
-            font-weight: bold;
-            color: #333;
-            text-align: center;
-            margin-bottom: 20px;
-        }
+          .payment-title {
+              font-size: 24px;
+              font-weight: bold;
+              color: #333;
+              text-align: center;
+              margin-bottom: 20px;
+          }
 
-        .payment-methods {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
-            margin-bottom: 30px;
-        }
+          .payment-methods {
+              display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+              gap: 30px;
+              margin-bottom: 30px;
+          }
 
-        .payment-method {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            text-align: center;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
+          .payment-method {
+              background: white;
+              border-radius: 15px;
+              padding: 25px;
+              text-align: center;
+              box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+          }
 
-        .payment-method h3 {
-            color: #333;
-            margin-bottom: 15px;
-            font-size: 18px;
-        }
+          .payment-method h3 {
+              color: #333;
+              margin-bottom: 15px;
+              font-size: 18px;
+          }
 
-        .qr-code {
-            width: 180px;
-            height: 180px;
-            background: #f0f0f0;
-            border-radius: 10px;
-            margin: 0 auto 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            color: #666;
-            border: 2px dashed #ddd;
-        }
+          .qr-code {
+              width: 180px;
+              height: 180px;
+              background: #f0f0f0;
+              border-radius: 10px;
+              margin: 0 auto 15px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 14px;
+              color: #666;
+              border: 2px dashed #ddd;
+          }
 
-        .payment-instructions {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 20px;
-        }
+          .payment-instructions {
+              background: #fff3cd;
+              border: 1px solid #ffeaa7;
+              border-radius: 10px;
+              padding: 20px;
+              margin-top: 20px;
+          }
 
-        .payment-instructions h4 {
-            color: #856404;
-            margin-bottom: 10px;
-        }
+          .payment-instructions h4 {
+              color: #856404;
+              margin-bottom: 10px;
+          }
 
-        .payment-instructions ol {
-            color: #856404;
-            padding-left: 20px;
-        }
+          .payment-instructions ol {
+              color: #856404;
+              padding-left: 20px;
+          }
 
-        .payment-instructions li {
-            margin-bottom: 5px;
-        }
+          .payment-instructions li {
+              margin-bottom: 5px;
+          }
 
-        .contact-info {
-            background: #e8f5e8;
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 20px;
-            text-align: center;
-        }
+          .contact-info {
+              background: #e8f5e8;
+              border-radius: 10px;
+              padding: 20px;
+              margin-top: 20px;
+              text-align: center;
+          }
 
-        .contact-info h4 {
-            color: #27ae60;
-            margin-bottom: 10px;
-        }
+          .contact-info h4 {
+              color: #27ae60;
+              margin-bottom: 10px;
+          }
 
-        .contact-info p {
-            color: #2d5a41;
-            margin-bottom: 5px;
-        }
+          .contact-info p {
+              color: #2d5a41;
+              margin-bottom: 5px;
+          }
 
-        .back-btn {
-            background: #6c757d;
-            color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 16px;
-            margin-top: 20px;
-            transition: background 0.3s;
-        }
+          .back-btn {
+              background: #6c757d;
+              color: white;
+              padding: 12px 24px;
+              border: none;
+              border-radius: 25px;
+              cursor: pointer;
+              font-size: 16px;
+              margin-top: 20px;
+              transition: background 0.3s;
+          }
 
-        .back-btn:hover {
-            background: #5a6268;
-        }
+          .back-btn:hover {
+              background: #5a6268;
+          }
 
-        .features-comparison {
-            margin-top: 40px;
-            overflow-x: auto;
-        }
+          .features-comparison {
+              margin-top: 40px;
+              overflow-x: auto;
+          }
 
-        .comparison-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
+          .comparison-table {
+              width: 100%;
+              border-collapse: collapse;
+              background: white;
+              border-radius: 10px;
+              overflow: hidden;
+              box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+          }
 
-        .comparison-table th,
-        .comparison-table td {
-            padding: 15px;
-            text-align: center;
-            border-bottom: 1px solid #f0f0f0;
-        }
+          .comparison-table th,
+          .comparison-table td {
+              padding: 15px;
+              text-align: center;
+              border-bottom: 1px solid #f0f0f0;
+          }
 
-        .comparison-table th {
-            background: #667eea;
-            color: white;
-            font-weight: bold;
-        }
+          .comparison-table th {
+              background: #667eea;
+              color: white;
+              font-weight: bold;
+          }
 
-        .comparison-table td {
-            color: #555;
-        }
+          .comparison-table td {
+              color: #555;
+          }
 
-        .check-mark {
-            color: #27ae60;
-            font-weight: bold;
-            font-size: 18px;
-        }
+          .check-mark {
+              color: #27ae60;
+              font-weight: bold;
+              font-size: 18px;
+          }
 
-        .cross-mark {
-            color: #e74c3c;
-            font-weight: bold;
-            font-size: 18px;
-        }
+          .cross-mark {
+              color: #e74c3c;
+              font-weight: bold;
+              font-size: 18px;
+          }
 
-        @media (max-width: 768px) {
-            .plans {
-                grid-template-columns: 1fr;
-            }
-            
-            .payment-methods {
-                grid-template-columns: 1fr;
-            }
-            
-            .content {
-                padding: 20px;
-            }
-            
-            .header {
-                padding: 20px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>💎 升级您的账户</h1>
-            <p>解锁更多功能，享受更好的服务体验</p>
-        </div>
+          @media (max-width: 768px) {
+              .plans {
+                  grid-template-columns: 1fr;
+              }
 
-        <div class="content">
-            <!-- 套餐选择 -->
-            <div class="plans">
-                <!-- 免费版 -->
-                <div class="plan">
-                    <div class="plan-name">免费版</div>
-                    <div class="plan-price">
-                        <span class="currency">¥</span>0
-                    </div>
-                    <div class="plan-period">永久免费</div>
-                    <ul class="plan-features">
-                        <li>每日 5 次对话</li>
-                        <li>基础生活问题咨询</li>
-                        <li>标准响应速度</li>
-                        <li>基础功能支持</li>
-                    </ul>
-                    <button class="current-plan">当前套餐</button>
-                </div>
+              .payment-methods {
+                  grid-template-columns: 1fr;
+              }
 
-                <!-- 基础版 -->
-                <div class="plan recommended">
-                    <div class="plan-name">基础版</div>
-                    <div class="plan-price">
-                        <span class="currency">¥</span>9.9
-                    </div>
-                    <div class="plan-period">每月</div>
-                    <ul class="plan-features">
-                        <li>无限次对话</li>
-                        <li>深度生活问题分析</li>
-                        <li>优先响应速度</li>
-                        <li>聊天记录云端保存</li>
-                        <li>个性化建议</li>
-                    </ul>
-                </div>
+              .content {
+                  padding: 20px;
+              }
 
-                <!-- 高级版 -->
-                <div class="plan">
-                    <div class="plan-name">高级版</div>
-                    <div class="plan-price">
-                        <span class="currency">¥</span>19.9
-                    </div>
-                    <div class="plan-period">每月</div>
-                    <ul class="plan-features">
-                        <li>无限次对话</li>
-                        <li>专业生活指导</li>
-                        <li>极速响应</li>
-                        <li>聊天记录永久保存</li>
-                        <li>一对一专属服务</li>
-                        <li>优先客服支持</li>
-                        <li>高级功能抢先体验</li>
-                    </ul>
-                </div>
-            </div>
+              .header {
+                  padding: 20px;
+              }
+          }
+      </style>
+  </head>
+  <body>
+      <div class="container">
+          <div class="header">
+              <h1>💎 升级您的账户</h1>
+              <p>解锁更多功能，享受更好的服务体验</p>
+          </div>
 
-            <!-- 功能对比表 -->
-            <div class="features-comparison">
-                <table class="comparison-table">
-                    <thead>
-                        <tr>
-                            <th>功能特性</th>
-                            <th>免费版</th>
-                            <th>基础版</th>
-                            <th>高级版</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>每日对话次数</td>
-                            <td>5次</td>
-                            <td>无限</td>
-                            <td>无限</td>
-                        </tr>
-                        <tr>
-                            <td>响应速度</td>
-                            <td>标准</td>
-                            <td>优先</td>
-                            <td>极速</td>
-                        </tr>
-                        <tr>
-                            <td>聊天记录保存</td>
-                            <td><span class="check-mark">✓</span></td>
-                            <td><span class="check-mark">✓</span></td>
-                            <td><span class="check-mark">✓</span></td>
-                        </tr>
-                        <tr>
-                            <td>个性化建议</td>
-                            <td><span class="cross-mark">✗</span></td>
-                            <td><span class="check-mark">✓</span></td>
-                            <td><span class="check-mark">✓</span></td>
-                        </tr>
-                        <tr>
-                            <td>专属客服</td>
-                            <td><span class="cross-mark">✗</span></td>
-                            <td><span class="cross-mark">✗</span></td>
-                            <td><span class="check-mark">✓</span></td>
-                        </tr>
-                        <tr>
-                            <td>新功能抢先体验</td>
-                            <td><span class="cross-mark">✗</span></td>
-                            <td><span class="cross-mark">✗</span></td>
-                            <td><span class="check-mark">✓</span></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+          <div class="content">
+              <!-- 套餐选择 -->
+              <div class="plans">
+                  <!-- 免费版 -->
+                  <div class="plan">
+                      <div class="plan-name">免费版</div>
+                      <div class="plan-price">
+                          <span class="currency">¥</span>0
+                      </div>
+                      <div class="plan-period">永久免费</div>
+                      <ul class="plan-features">
+                          <li>每日 5 次对话</li>
+                          <li>基础生活问题咨询</li>
+                          <li>标准响应速度</li>
+                          <li>基础功能支持</li>
+                      </ul>
+                      <button class="current-plan">当前套餐</button>
+                  </div>
 
-            <!-- 支付方式 -->
-            <div class="payment-section">
-                <h2 class="payment-title">🎯 选择支付方式</h2>
-                
-                <div class="payment-methods">
-                    <!-- 微信支付 -->
-                    <div class="payment-method">
-                        <h3>💚 微信支付</h3>
-                        <div class="qr-code">
-                            请联系客服<br>获取收款码
-                        </div>
-                        <p style="color: #666; font-size: 14px;">扫描二维码即可支付</p>
-                    </div>
+                  <!-- 基础版 -->
+                  <div class="plan recommended">
+                      <div class="plan-name">基础版</div>
+                      <div class="plan-price">
+                          <span class="currency">¥</span>9.9
+                      </div>
+                      <div class="plan-period">每月</div>
+                      <ul class="plan-features">
+                          <li>无限次对话</li>
+                          <li>深度生活问题分析</li>
+                          <li>优先响应速度</li>
+                          <li>聊天记录云端保存</li>
+                          <li>个性化建议</li>
+                      </ul>
+                  </div>
 
-                    <!-- 支付宝 -->
-                    <div class="payment-method">
-                        <h3>💙 支付宝</h3>
-                        <div class="qr-code">
-                            请联系客服<br>获取收款码
-                        </div>
-                        <p style="color: #666; font-size: 14px;">扫描二维码即可支付</p>
-                    </div>
-                </div>
+                  <!-- 高级版 -->
+                  <div class="plan">
+                      <div class="plan-name">高级版</div>
+                      <div class="plan-price">
+                          <span class="currency">¥</span>19.9
+                      </div>
+                      <div class="plan-period">每月</div>
+                      <ul class="plan-features">
+                          <li>无限次对话</li>
+                          <li>专业生活指导</li>
+                          <li>极速响应</li>
+                          <li>聊天记录永久保存</li>
+                          <li>一对一专属服务</li>
+                          <li>优先客服支持</li>
+                          <li>高级功能抢先体验</li>
+                      </ul>
+                  </div>
+              </div>
 
-                <!-- 支付说明 -->
-                <div class="payment-instructions">
-                    <h4>📋 支付流程：</h4>
-                    <ol>
-                        <li>选择您想要的套餐（基础版 ¥9.9/月 或 高级版 ¥19.9/月）</li>
-                        <li>联系客服获取对应套餐的收款码</li>
-                        <li>使用微信或支付宝扫码支付</li>
-                        <li>支付完成后，将支付截图发送给客服</li>
-                        <li>客服确认后，我们将在2小时内为您升级账户</li>
-                        <li>升级完成后，您可以立即享受高级功能</li>
-                    </ol>
-                </div>
+              <!-- 功能对比表 -->
+              <div class="features-comparison">
+                  <table class="comparison-table">
+                      <thead>
+                          <tr>
+                              <th>功能特性</th>
+                              <th>免费版</th>
+                              <th>基础版</th>
+                              <th>高级版</th>
+                          </tr>
+                      </thead>
+                      <tbody>
+                          <tr>
+                              <td>每日对话次数</td>
+                              <td>5次</td>
+                              <td>无限</td>
+                              <td>无限</td>
+                          </tr>
+                          <tr>
+                              <td>响应速度</td>
+                              <td>标准</td>
+                              <td>优先</td>
+                              <td>极速</td>
+                          </tr>
+                          <tr>
+                              <td>聊天记录保存</td>
+                              <td><span class="check-mark">✓</span></td>
+                              <td><span class="check-mark">✓</span></td>
+                              <td><span class="check-mark">✓</span></td>
+                          </tr>
+                          <tr>
+                              <td>个性化建议</td>
+                              <td><span class="cross-mark">✗</span></td>
+                              <td><span class="check-mark">✓</span></td>
+                              <td><span class="check-mark">✓</span></td>
+                          </tr>
+                          <tr>
+                              <td>专属客服</td>
+                              <td><span class="cross-mark">✗</span></td>
+                              <td><span class="cross-mark">✗</span></td>
+                              <td><span class="check-mark">✓</span></td>
+                          </tr>
+                          <tr>
+                              <td>新功能抢先体验</td>
+                              <td><span class="cross-mark">✗</span></td>
+                              <td><span class="cross-mark">✗</span></td>
+                              <td><span class="check-mark">✓</span></td>
+                          </tr>
+                      </tbody>
+                  </table>
+              </div>
 
-                <!-- 联系方式 -->
-                <div class="contact-info">
-                    <h4>📞 联系客服</h4>
-                    <p><strong>微信号：</strong> dream666333</p>
-                    <p><strong>QQ号：</strong> 1315142976@qq.com</p>
-                    <p><strong>邮箱：</strong> 1315142976@qq.com</p>
-                    <p style="margin-top: 10px; font-size: 14px;">
-                        <strong>服务时间：</strong> 周一至周日 10:00-21:00
-                    </p>
-                </div>
+              <!-- 支付方式 -->
+              <div class="payment-section">
+                  <h2 class="payment-title">🎯 选择支付方式</h2>
 
-                <div style="text-align: center; margin-top: 30px;">
-                    <button class="back-btn" onclick="goBack()">返回聊天</button>
-                </div>
-            </div>
-        </div>
-    </div>
+                  <div class="payment-methods">
+                      <!-- 支付宝 -->
+                      <div class="payment-method">
+                          <h3>💙 支付宝</h3>
+                          <div class="qr-code">
+                              请联系客服<br>获取收款码
+                          </div>
+                          <p style="color: #666; font-size: 14px;">扫描二维码即可支付</p>
+                      </div>
+                  </div>
 
-    <script>
-        function goBack() {
-            // 检查是否有登录状态
-            const token = localStorage.getItem('token');
-            if (token) {
-                window.location.href = '/chat.html';
-            } else {
-                window.location.href = '/login.html';
-            }
-        }
+                  <!-- 支付说明 -->
+                  <div class="payment-instructions">
+                      <h4>📋 支付流程：</h4>
+                      <ol>
+                          <li>选择您想要的套餐（基础版 ¥9.9/月 或 高级版 ¥19.9/月）</li>
+                          <li>联系客服获取对应套餐的支付宝收款码</li>
+                          <li>使用支付宝扫码支付</li>
+                          <li>支付完成后，将支付截图发送给客服</li>
+                          <li>客服确认后，我们将在2小时内为您升级账户</li>
+                          <li>升级完成后，您可以立即享受高级功能</li>
+                      </ol>
+                  </div>
 
-        // 页面加载时检查登录状态
-        window.addEventListener('load', () => {
-            const token = localStorage.getItem('token');
-            const username = localStorage.getItem('username');
-            
-            if (!token || !username) {
-                // 未登录用户也可以查看升级页面，但返回按钮会跳转到登录页
-                console.log('未登录用户访问升级页面');
-            } else {
-                console.log(`已登录用户 ${username} 访问升级页面`);
-            }
-        });
+                  <!-- 联系方式 -->
+                  <div class="contact-info">
+                      <h4>📞 联系客服</h4>
+                      <p><strong>微信号：</strong> dream666333</p>
+                      <p><strong>QQ号：</strong> 1315142976</p>
+                      <p><strong>邮箱：</strong> 1315142976@qq.com</p>
+                      <p style="margin-top: 10px; font-size: 14px;">
+                          <strong>服务时间：</strong> 周一至周日 9:00-21:00
+                      </p>
+                  </div>
 
-        // 添加一些交互效果
-        document.querySelectorAll('.plan').forEach(plan => {
-            plan.addEventListener('click', function() {
-                // 如果不是当前套餐，显示支付信息
-                if (!this.querySelector('.current-plan')) {
-                    document.querySelector('.payment-section').scrollIntoView({ 
-                        behavior: 'smooth' 
-                    });
-                }
-            });
-        });
+                  <div style="text-align: center; margin-top: 30px;">
+                      <button class="back-btn" onclick="goBack()">返回聊天</button>
+                  </div>
+              </div>
+          </div>
+      </div>
 
-        // 模拟客服联系功能
-        function contactSupport(method) {
-            if (method === 'wechat') {
-                alert('请添加微信号：wang_lei_helper\n备注：升级账户');
-            } else if (method === 'qq') {
-                alert('请添加QQ号：123456789\n备注：升级账户');
-            } else if (method === 'email') {
-                window.location.href = 'mailto:support@life-helper.com?subject=升级账户咨询';
-            }
-        }
-    </script>
-</body>
-</html>
+      <script>
+          function goBack() {
+              // 检查是否有登录状态
+              const token = localStorage.getItem('token');
+              if (token) {
+                  window.location.href = '/chat.html';
+              } else {
+                  window.location.href = '/login.html';
+              }
+          }
+
+          // 页面加载时检查登录状态
+          window.addEventListener('load', () => {
+              const token = localStorage.getItem('token');
+              const username = localStorage.getItem('username');
+
+              if (!token || !username) {
+                  // 未登录用户也可以查看升级页面，但返回按钮会跳转到登录页
+                  console.log('未登录用户访问升级页面');
+              } else {
+                  console.log(`已登录用户 ${username} 访问升级页面`);
+              }
+          });
+
+          // 添加一些交互效果
+          document.querySelectorAll('.plan').forEach(plan => {
+              plan.addEventListener('click', function() {
+                  // 如果不是当前套餐，显示支付信息
+                  if (!this.querySelector('.current-plan')) {
+                      document.querySelector('.payment-section').scrollIntoView({
+                          behavior: 'smooth'
+                      });
+                  }
+              });
+          });
+
+          // 模拟客服联系功能
+          function contactSupport(method) {
+              if (method === 'wechat') {
+                  alert('请添加微信号：dream666333\n备注：升级账户');
+              } else if (method === 'qq') {
+                  alert('请添加QQ号：1315142976\n备注：升级账户');
+              } else if (method === 'email') {
+                  window.location.href = 'mailto:1315142976@qq.com?subject=升级账户咨询';
+              }
+          }
+      </script>
+  </body>
+  </html>
