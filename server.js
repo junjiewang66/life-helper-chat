@@ -32,8 +32,21 @@ const express = require('express');
                   username VARCHAR(50) UNIQUE NOT NULL,
                   password VARCHAR(255) NOT NULL,
                   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                  chat_history JSONB DEFAULT '[]'
+                  chat_history JSONB DEFAULT '[]',
+                  plan_type VARCHAR(20) DEFAULT 'free',
+                  questions_used INTEGER DEFAULT 0,
+                  questions_limit INTEGER DEFAULT 5,
+                  plan_expires_at TIMESTAMP DEFAULT NULL
               )
+          `);
+
+          // 如果表已存在，添加新列（兼容现有数据）
+          await pool.query(`
+              ALTER TABLE users
+              ADD COLUMN IF NOT EXISTS plan_type VARCHAR(20) DEFAULT 'free',
+              ADD COLUMN IF NOT EXISTS questions_used INTEGER DEFAULT 0,
+              ADD COLUMN IF NOT EXISTS questions_limit INTEGER DEFAULT 5,
+              ADD COLUMN IF NOT EXISTS plan_expires_at TIMESTAMP DEFAULT NULL
           `);
           console.log('Database tables initialized successfully');
       } catch (error) {
@@ -148,13 +161,29 @@ const express = require('express');
       }
 
       try {
-          // 获取用户聊天历史
+          // 获取用户信息（包括套餐和问题限制）
           const userResult = await pool.query(
-              'SELECT chat_history FROM users WHERE username = $1',
+              'SELECT chat_history, plan_type, questions_used, questions_limit FROM users WHERE username = $1',
               [req.user.username]
           );
 
-          const chatHistory = userResult.rows[0]?.chat_history || [];
+          const user = userResult.rows[0];
+          if (!user) {
+              return res.status(404).json({ message: '用户不存在' });
+          }
+
+          // 检查用户是否超过问题限制
+          if (user.questions_used >= user.questions_limit) {
+              return res.status(403).json({
+                  message: '您已达到当前套餐的问题限制，请升级套餐以继续使用',
+                  needUpgrade: true,
+                  currentPlan: user.plan_type,
+                  questionsUsed: user.questions_used,
+                  questionsLimit: user.questions_limit
+              });
+          }
+
+          const chatHistory = user.chat_history || [];
 
           // 构建消息历史（保持最近10条对话）
           const messages = [
@@ -203,8 +232,9 @@ const express = require('express');
               ? newChatHistory.slice(-40)
               : newChatHistory;
 
+          // 更新聊天历史和增加问题计数
           await pool.query(
-              'UPDATE users SET chat_history = $1 WHERE username = $2',
+              'UPDATE users SET chat_history = $1, questions_used = questions_used + 1 WHERE username = $2',
               [JSON.stringify(trimmedHistory), req.user.username]
           );
 
@@ -261,6 +291,114 @@ const express = require('express');
       } catch (error) {
           console.error('Clear chat history error:', error);
           res.status(500).json({ message: '清除聊天历史失败' });
+      }
+  });
+
+  // 路由：获取用户状态
+  app.get('/api/user-status', verifyToken, async (req, res) => {
+      try {
+          const result = await pool.query(
+              'SELECT plan_type, questions_used, questions_limit, plan_expires_at FROM users WHERE username = $1',
+              [req.user.username]
+          );
+
+          const user = result.rows[0];
+          if (!user) {
+              return res.status(404).json({ message: '用户不存在' });
+          }
+
+          res.json({
+              planType: user.plan_type,
+              questionsUsed: user.questions_used,
+              questionsLimit: user.questions_limit,
+              planExpiresAt: user.plan_expires_at,
+              remainingQuestions: user.questions_limit - user.questions_used
+          });
+      } catch (error) {
+          console.error('Get user status error:', error);
+          res.status(500).json({ message: '获取用户状态失败' });
+      }
+  });
+
+  // 管理员密码（实际项目中应该使用环境变量）
+  const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123456';
+
+  // 路由：管理员升级用户套餐
+  app.post('/api/admin/upgrade-user', async (req, res) => {
+      const { adminPassword, username, planType } = req.body;
+
+      // 验证管理员密码
+      if (adminPassword !== ADMIN_PASSWORD) {
+          return res.status(401).json({ message: '管理员密码错误' });
+      }
+
+      // 验证输入
+      if (!username || !planType) {
+          return res.status(400).json({ message: '用户名和套餐类型不能为空' });
+      }
+
+      // 定义套餐限制
+      const planLimits = {
+          'free': 5,
+          'basic': 10,
+          'premium': 15
+      };
+
+      if (!planLimits[planType]) {
+          return res.status(400).json({ message: '无效的套餐类型' });
+      }
+
+      try {
+          // 检查用户是否存在
+          const userCheck = await pool.query(
+              'SELECT username FROM users WHERE username = $1',
+              [username]
+          );
+
+          if (userCheck.rows.length === 0) {
+              return res.status(404).json({ message: '用户不存在' });
+          }
+
+          // 升级用户套餐
+          const newLimit = planLimits[planType];
+          const expiresAt = planType === 'free' ? null : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30天后过期
+
+          await pool.query(
+              'UPDATE users SET plan_type = $1, questions_used = 0, questions_limit = $2, plan_expires_at = $3 WHERE username = $4',
+              [planType, newLimit, expiresAt, username]
+          );
+
+          res.json({
+              message: '用户套餐升级成功',
+              username: username,
+              newPlan: planType,
+              newLimit: newLimit,
+              expiresAt: expiresAt
+          });
+      } catch (error) {
+          console.error('Upgrade user error:', error);
+          res.status(500).json({ message: '升级用户失败' });
+      }
+  });
+
+  // 路由：管理员获取所有用户信息
+  app.post('/api/admin/users', async (req, res) => {
+      const { adminPassword } = req.body;
+
+      // 验证管理员密码
+      if (adminPassword !== ADMIN_PASSWORD) {
+          return res.status(401).json({ message: '管理员密码错误' });
+      }
+
+      try {
+          const result = await pool.query(
+              'SELECT username, plan_type, questions_used, questions_limit, plan_expires_at, created_at FROM users ORDER BY created_at DESC'
+          );
+
+          res.json({ users: result.rows });
+      } catch (error) {
+          console.error('Get users error:', error);
+          res.status(500).json({ message: '获取用户列表失败' });
       }
   });
 
